@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 
+# ---------------- LOAD ENV ----------------
 load_dotenv(dotenv_path=".env")
 
 # ---------------- CONFIG ----------------
@@ -49,7 +50,7 @@ if page == "About":
     - Bias Mitigation Simulation
     """)
 
-# ---------------- DASHBOARD ----------------
+# ---------------- DASHBOARD PAGE ----------------
 if page == "Dashboard":
 
     # ---------------- HEADER ----------------
@@ -64,7 +65,7 @@ if page == "Dashboard":
         "(e.g., Gender, Race, Age)"
     )
 
-    # ---------------- CORE FUNCTIONS ----------------
+    # ---------------- FUNCTIONS ----------------
     def detect_bias(df, target):
 
         result = {}
@@ -84,9 +85,11 @@ if page == "Dashboard":
                 df[target] = df[target].map(mapping)
 
             else:
+
                 st.warning(
                     "Target must be binary for fairness analysis"
                 )
+
                 return {}
 
         else:
@@ -105,7 +108,10 @@ if page == "Dashboard":
         # -------- BIAS DETECTION --------
         for col in df.columns:
 
-            if col != target and df[col].dtype == object:
+            if (
+                col != target
+                and df[col].dtype == object
+            ):
 
                 # Ignore ID-like columns
                 if df[col].nunique() == len(df):
@@ -145,7 +151,10 @@ if page == "Dashboard":
             / len(bias)
         )
 
-        return round(max(0, 1 - avg_bias), 3)
+        return round(
+            max(0, 1 - avg_bias),
+            3
+        )
 
 
     def deployment_decision(bias, score):
@@ -166,12 +175,14 @@ if page == "Dashboard":
             max_spd = sensitive_bias[max_feature]["SPD"]
 
             if max_spd > 0.2:
+
                 return (
                     "❌ DO NOT DEPLOY",
                     f"High bias in sensitive feature: {max_feature}"
                 )
 
         if score < 0.8:
+
             return (
                 "⚠️ DEPLOY WITH CAUTION",
                 "Moderate fairness"
@@ -200,16 +211,28 @@ if page == "Dashboard":
             )
 
             if v["SPD"] >= 0.8:
-                msgs.append(f"{f} {label}: Extreme bias")
+
+                msgs.append(
+                    f"{f} {label}: Extreme bias"
+                )
 
             elif v["SPD"] > 0.2:
-                msgs.append(f"{f} {label}: High bias")
+
+                msgs.append(
+                    f"{f} {label}: High bias"
+                )
 
             elif v["SPD"] > 0.15:
-                msgs.append(f"{f} {label}: Moderate bias")
+
+                msgs.append(
+                    f"{f} {label}: Moderate bias"
+                )
 
             else:
-                msgs.append(f"{f} {label}: Acceptable")
+
+                msgs.append(
+                    f"{f} {label}: Acceptable"
+                )
 
         return msgs
 
@@ -222,7 +245,10 @@ if page == "Dashboard":
 
             improved[k] = {
                 "SPD": round(v["SPD"] * 0.6, 3),
-                "DI": round(min(1, v["DI"] + 0.2), 3)
+                "DI": round(
+                    min(1, v["DI"] + 0.2),
+                    3
+                )
             }
 
         return improved
@@ -230,7 +256,9 @@ if page == "Dashboard":
 
     def explain_bias(bias):
 
-        explanation = "🧠 FairSense AI Auditor Report\n\n"
+        explanation = (
+            "🧠 FairSense AI Auditor Report\n\n"
+        )
 
         critical = False
 
@@ -288,13 +316,16 @@ Fixes:
 """
 
         if critical:
-            explanation += "\n🚫 Recommendation: Do NOT deploy"
+            explanation += (
+                "\n🚫 Recommendation: Do NOT deploy"
+            )
 
         else:
-            explanation += "\n✅ Recommendation: Safe to deploy"
+            explanation += (
+                "\n✅ Recommendation: Safe to deploy"
+            )
 
         return explanation
-
 
     # ---------------- FILE UPLOAD ----------------
     file = st.file_uploader(
@@ -302,6 +333,7 @@ Fixes:
         type=["csv"]
     )
 
+    # ---------------- IF FILE EXISTS ----------------
     if file:
 
         # ---------------- CACHE DATA ----------------
@@ -311,19 +343,28 @@ Fixes:
 
         df = load_data(file)
 
+        # ---------------- DATASET PREVIEW ----------------
         st.subheader("📂 Dataset Preview")
 
-        st.write("Dataset Shape:", df.shape)
+        st.write(
+            "Dataset Shape:",
+            df.shape
+        )
 
         st.dataframe(df.head())
 
+        # ---------------- TARGET COLUMN ----------------
         target = st.selectbox(
             "Select Target Column",
             df.columns
         )
 
         # Prevent sensitive target
-        if target.lower() in ["gender", "race", "age"]:
+        if target.lower() in [
+            "gender",
+            "race",
+            "age"
+        ]:
 
             st.warning(
                 "Sensitive attribute cannot be target"
@@ -376,22 +417,34 @@ Fixes:
                 len(bias)
             )
 
-            # ---------------- DECISION ----------------
+            # ---------------- DEPLOYMENT DECISION ----------------
             st.subheader("🚦 Deployment Decision")
 
             if "DO NOT DEPLOY" in decision:
-                st.error(f"{decision} — {reason}")
+
+                st.error(
+                    f"{decision} — {reason}"
+                )
 
             elif "CAUTION" in decision:
-                st.warning(f"{decision} — {reason}")
+
+                st.warning(
+                    f"{decision} — {reason}"
+                )
 
             else:
-                st.success(f"{decision} — {reason}")
+
+                st.success(
+                    f"{decision} — {reason}"
+                )
 
             # ---------------- BIAS VALIDATION ----------------
-            st.subheader("⚖️ Bias Severity Assessment")
+            st.subheader(
+                "⚖️ Bias Severity Assessment"
+            )
 
             for msg in validate_bias(bias):
+
                 st.write("•", msg)
 
             # ---------------- BIAS METRICS ----------------
@@ -415,47 +468,83 @@ Fixes:
             st.subheader("📉 Bias Visualization")
 
             colors = [
-                "red" if v["SPD"] > 0.2 else "green"
+                "red"
+                if v["SPD"] > 0.2
+                else "green"
+                for v in bias.values()
+            ]
+
+            features = list(bias.keys())
+
+            scores = [
+                v["SPD"]
                 for v in bias.values()
             ]
 
             fig, ax = plt.subplots(
-                figsize=(10, 5)
+                figsize=(14, 7)
             )
 
             ax.bar(
-                list(bias.keys()),
-                [v["SPD"] for v in bias.values()],
+                features,
+                scores,
                 color=colors
             )
 
-            ax.set_ylabel("Bias Score (SPD)")
-            ax.set_title("Bias Severity")
+            ax.set_ylabel(
+                "Bias Score (SPD)",
+                fontsize=12
+            )
+
+            ax.set_xlabel(
+                "Features",
+                fontsize=12
+            )
+
+            ax.set_title(
+                "Bias Severity Analysis",
+                fontsize=14
+            )
+
             ax.set_ylim(0, 1)
 
-            plt.xticks(rotation=45)
+            plt.xticks(
+                rotation=60,
+                ha="right",
+                fontsize=10
+            )
 
-            plt.tight_layout()
+            plt.tight_layout(pad=3)
 
             st.pyplot(fig)
 
             # ---------------- SIMULATION ----------------
-            st.subheader("🔧 Before vs After Bias Fix")
+            st.subheader(
+                "🔧 Before vs After Bias Fix"
+            )
 
             improved_bias = simulate_fix(bias)
 
-            st.write("Original:", bias)
+            st.write(
+                "Original:",
+                bias
+            )
 
-            st.write("Improved:", improved_bias)
+            st.write(
+                "Improved:",
+                improved_bias
+            )
 
             # ---------------- AI REPORT ----------------
-            st.subheader("🤖 AI Fairness Report")
+            st.subheader(
+                "🤖 AI Fairness Report"
+            )
 
             report = explain_bias(bias)
 
             st.write(report)
 
-            # ---------------- DOWNLOAD REPORT ----------------
+            # ---------------- DOWNLOAD BUTTON ----------------
             st.download_button(
                 label="📥 Download AI Report",
                 data=report,
