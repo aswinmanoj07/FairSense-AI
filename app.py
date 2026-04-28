@@ -65,8 +65,6 @@ def fairness_score(bias):
         return 1.0
     return round(max(0, 1 - sum(v["SPD"] for v in bias.values()) / len(bias)), 3)
 
-
-# 🔥 FIXED DECISION (SENSITIVE ONLY)
 def deployment_decision(bias, score):
     sensitive_bias = {f: v for f, v in bias.items() if f in SENSITIVE_FEATURES}
 
@@ -87,7 +85,6 @@ def confidence_level(score):
     return round(score * 100, 1)
 
 
-# 🔥 IMPROVED THRESHOLDS
 def validate_bias(bias):
     msgs = []
     for f, v in bias.items():
@@ -114,7 +111,6 @@ def simulate_fix(bias):
     return improved
 
 
-# 🔥 AI REPORT (ALIGNED)
 def explain_bias(bias):
     explanation = "🧠 FairSense AI Auditor Report\n\n"
 
