@@ -57,11 +57,7 @@ bash pip install -r requirements.txt
 
 Run the project using:
 
-bash python app.py 
-
-If Streamlit is used:
-
-bash streamlit run app.py 
+streamlit run app.py
 
 ---
 
